@@ -82,7 +82,7 @@ class _DraggableListViewState<E> extends State<DraggableListView<E>> {
       height: widget.rowHeight,
       child: child,
       onDragDown: _drawOnTop,
-      onDragIndexChanged: _updatedUndraggedTop,
+      onDragIndexChanged: _updateUndraggedTops,
       onDragEnd: _dragEnd,
     );
   }
@@ -94,7 +94,14 @@ class _DraggableListViewState<E> extends State<DraggableListView<E>> {
     });
   }
 
-  void _updatedUndraggedTop(double oldTop, double newTop) {
+  // In normal circumstances we could simply swap the top of the undragged widget
+  // with the oldTop provided here by the dragged widget.  However, if the user
+  // drags quickly enough the [onDragIndexChanged] callback may not fire until
+  // the dragging widget has travelled far enough to move 2 or more places in the
+  // list.  Hence, we need to use the process here to iterate through all of the
+  // undragged widgets affected by the change in position and update all of their
+  // tops appropriately.
+  void _updateUndraggedTops(double oldTop, double newTop) {
     if (newTop > oldTop){
       _moveUndraggedUp(oldTop, newTop);
     } else {

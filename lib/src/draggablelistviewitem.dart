@@ -72,17 +72,18 @@ class _DraggableListViewItemState extends State<DraggableListViewItem> {
   }
 
   void _setCurrentSnapTop(double newTop) {
-    double diffToSnapTop = newTop - _currentSnapTop;
-    double threshold = widget.height / 2;
-    if (diffToSnapTop.abs() > threshold) {
+    double snapChange = _getSnapChange(newTop);
+    if (snapChange != 0) {
       _priorSnapTop = _currentSnapTop;
-      if (diffToSnapTop < 0) {
-        _currentSnapTop = _currentSnapTop - widget.height;
-      } else {
-        _currentSnapTop = _currentSnapTop + widget.height;
-      }
+      _currentSnapTop += snapChange;
       widget.onDragIndexChanged(_priorSnapTop, _currentSnapTop);
     }
+  }
+  
+  double _getSnapChange(double top){
+    double diffToSnapTop = top - _currentSnapTop;
+    double threshold = widget.height / 2;
+    return (diffToSnapTop ~/ threshold) * widget.height;
   }
 
   void _setMovingElevation() {

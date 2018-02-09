@@ -64,20 +64,17 @@ class _DraggableListViewState<E> extends State<DraggableListView<E>> {
   void _buildItems() {
     _zIndex.clear();
     var top = 0.0;
-    var index = 0;
     for (var item in widget.source) {
       _zIndex.add(_buildItem(
         child: widget.builder(item),
         top: top,
-        index: index,
       ));
-      top = top + widget.rowHeight;
-      index++;
+      top += widget.rowHeight;
     }
   }
 
   DraggableListViewItem _buildItem(
-      {Widget child, double top, int index, Key key}) {
+      {Widget child, double top, Key key}) {
     if (key == null) key = new UniqueKey();
     return new DraggableListViewItem(
       key: key,
@@ -98,18 +95,44 @@ class _DraggableListViewState<E> extends State<DraggableListView<E>> {
   }
 
   void _updatedUndraggedTop(double oldTop, double newTop) {
-    var undragged =
-        _zIndex.firstWhere((element) => element.initialTop == newTop);
-    var zInsert = _zIndex.indexOf(undragged);
-    var replacement = _buildItem(
-      child: undragged.child,
-      top: oldTop,
-      key: undragged.key,
-    );
-    setState(() {
+    if (newTop > oldTop){
+      _moveUndraggedUp(oldTop, newTop);
+    } else {
+      _moveUndraggedDown(oldTop, newTop);
+    }
+    setState((){});
+  }
+
+  void _moveUndraggedUp(double oldTop, double newTop){
+    double current = oldTop + widget.rowHeight;
+    for (;current <= newTop;current += widget.rowHeight ){
+      var undragged =
+      _zIndex.firstWhere((element) => element.initialTop == current);
+      var replacement = _buildItem(
+        child: undragged.child,
+        top: current - widget.rowHeight,
+        key: undragged.key,
+      );
+      var zInsertIndex = _zIndex.indexOf(undragged);
       _zIndex.remove(undragged);
-      _zIndex.insert(zInsert, replacement);
-    });
+      _zIndex.insert(zInsertIndex, replacement);
+    }
+  }
+
+  void _moveUndraggedDown(double oldTop, double newTop){
+    double current = oldTop - widget.rowHeight;
+    for (;current >= newTop;current -= widget.rowHeight ){
+      var undragged =
+      _zIndex.firstWhere((element) => element.initialTop == current);
+      var replacement = _buildItem(
+        child: undragged.child,
+        top: current + widget.rowHeight,
+        key: undragged.key,
+      );
+      var zInsertIndex = _zIndex.indexOf(undragged);
+      _zIndex.remove(undragged);
+      _zIndex.insert(zInsertIndex, replacement);
+    }
   }
 
   void _dragEnd(double oldTop, double newTop) {

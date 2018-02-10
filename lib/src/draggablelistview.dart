@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:draggablelistview/src/draggablelistviewitem.dart';
@@ -142,11 +144,11 @@ class _DraggableListViewState<E> extends State<DraggableListView<E>> {
     }
   }
 
-  void _dragEnd(double oldTop, double newTop) {
+  Future _dragEnd(double oldTop, double newTop) async {
     var oldIndex = _topToIndex(oldTop);
     var newIndex = _topToIndex(newTop);
     if (newIndex >= 0 && newIndex < widget.source.length) {
-      widget.onMove(oldIndex, newIndex);
+      await new Future(() => widget.onMove(oldIndex, newIndex));
     }
     setState(_buildItems);
   }

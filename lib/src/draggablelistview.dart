@@ -44,7 +44,7 @@ class DraggableListView<E> extends StatefulWidget {
       : super(key: key);
 
   final double rowHeight;
-  final List<E> source;
+  final Iterable<E> source;
   final ItemBuilder<E> builder;
   final OnMoveCallback onMove;
 

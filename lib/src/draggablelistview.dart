@@ -50,7 +50,7 @@ class DraggableListView<E> extends StatefulWidget {
   final ItemBuilder<E> builder;
   final OnMoveCallback onMove;
 
-  createState() => new _DraggableListViewState();
+  createState() => new _DraggableListViewState<E>();
 }
 
 class _DraggableListViewState<E> extends State<DraggableListView<E>> {

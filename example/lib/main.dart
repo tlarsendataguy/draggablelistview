@@ -54,13 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
               source: data,
               rowHeight: 48.0,
               onMove: moveItem,
-              builder: (String value) => new Align(
-                    alignment: Alignment.centerLeft,
-                    child: new Padding(
-                      padding: const EdgeInsets.only(left: 16.0),
-                      child: new Text(value),
-                    ),
-                  ),
+              builder: buildItem,
             ),
           ),
           new Row(
@@ -74,6 +68,16 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget buildItem(String value){
+    return new Align(
+      alignment: Alignment.centerLeft,
+      child: new Padding(
+        padding: const EdgeInsets.only(left: 16.0),
+        child: new Text(value),
       ),
     );
   }

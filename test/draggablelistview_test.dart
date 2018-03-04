@@ -18,6 +18,7 @@ void main() {
           width: 100.0,
           height: 300.0,
           child: new DraggableListView<String>(
+            onMove: (oldIndex,newIndex)=>{},
               key: listKey,
               rowHeight: 50.0,
               source: source,

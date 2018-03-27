@@ -36,10 +36,10 @@ The following parameters are required:
 The features which have been implemented are:
 * The list can scroll
 * Calling setState on the parent widget after adding or removing items will cause DraggableListItem to correctly rebuild.
-* Items can be dragged and dropped with appropriate animations
+* Items can be dragged and dropped with appropriate animations.
+* Items cannot be dragged past the top or bottom of the currently-visible portion of the list.
 
 The features still to be implemented are:
 * Currently every item in the source is built when DraggableListView is created.  Looking to possibly lazy load or sliver the rows so DraggableListView is more performant with large lists.
 * Auto-scroll DraggableListView up and down when items are dragged to the top and bottom of the rendered viewport.
 * Create widget tests to define, and prevent regression of, expected behaviors
-* The DragUpdate process throws exceptions when an item is dragged completely off the list.  Need to investigate further.

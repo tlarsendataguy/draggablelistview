@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:meta/meta.dart';
 
 typedef void MoveItemCallback(int oldIndex);
 typedef void DragDownCallback(DraggableListViewItem item);
 typedef void DragEndCallback(double oldTop, double newTop);
 typedef void DragIndexChangedCallback(double oldTop, double newTop);
+typedef void DragCallback();
 
 class DraggableListViewItem extends StatefulWidget {
   DraggableListViewItem({
@@ -16,6 +18,11 @@ class DraggableListViewItem extends StatefulWidget {
     @required this.onDragDown,
     @required this.onDragIndexChanged,
     @required this.onDragEnd,
+    @required this.onDraggedToTop,
+    @required this.onDraggedToBottom,
+    @required this.onEdgeDragStopped,
+    @required this.listScrollController,
+    @required this.allItemsHeight,
   })
       : super(key: key);
 
@@ -25,6 +32,11 @@ class DraggableListViewItem extends StatefulWidget {
   final DragDownCallback onDragDown;
   final DragIndexChangedCallback onDragIndexChanged;
   final DragEndCallback onDragEnd;
+  final DragCallback onDraggedToTop;
+  final DragCallback onDraggedToBottom;
+  final DragCallback onEdgeDragStopped;
+  final ScrollController listScrollController;
+  final double allItemsHeight;
 
   createState() => new _DraggableListViewItemState(initialTop);
 }
@@ -43,18 +55,46 @@ class _DraggableListViewItemState extends State<DraggableListViewItem> {
   double _currentSnapTop;
   double _priorSnapTop;
   int _animateTime = _defaultAnimateTime;
+  double _listBottom;
+  double _listTop;
   static const int _defaultAnimateTime = 200;
 
   void _dragDown(DragDownDetails details) {
-    _animateTime = 0;
-    _setMovingElevation();
-    widget.onDragDown(widget);
+    // Get the size of the parent DraggableListView
+    context.visitAncestorElements((element) {
+      if (element.widget is SingleChildScrollView) {
+        _listTop = widget.listScrollController.offset;
+
+        _listBottom = element.size.height + _listTop;
+        if (widget.allItemsHeight < _listBottom)
+          _listBottom = widget.allItemsHeight;
+
+        _animateTime = 0;
+        _setMovingElevation();
+        widget.onDragDown(widget);
+        return false;
+      } else {
+        return true;
+      }
+    });
   }
 
   void _dragUpdate(DragUpdateDetails details) {
-    var newTop = _currentTop + details.delta.dy;
+    var newTop = _getConstrainedTop(details.delta.dy);
     _setCurrentSnapTop(newTop);
     setState(() => _currentTop = newTop);
+  }
+
+  double _getConstrainedTop(double change) {
+    var newTop = _currentTop + change;
+    var newBottom = newTop + widget.height;
+
+    if (newBottom > _listBottom)
+      newTop = _listBottom - widget.height;
+
+    if (newTop < _listTop) newTop = _listTop;
+
+    return newTop;
   }
 
   Future _dragEnd(DragEndDetails details) async {
@@ -79,8 +119,8 @@ class _DraggableListViewItemState extends State<DraggableListViewItem> {
       widget.onDragIndexChanged(_priorSnapTop, _currentSnapTop);
     }
   }
-  
-  double _getSnapChange(double top){
+
+  double _getSnapChange(double top) {
     double diffToSnapTop = top - _currentSnapTop;
     double threshold = widget.height / 2;
     return (diffToSnapTop ~/ threshold) * widget.height;
@@ -104,6 +144,7 @@ class _DraggableListViewItemState extends State<DraggableListViewItem> {
       _currentSnapTop = _initialTop;
       _currentTop = _initialTop;
     }
+
     return new AnimatedPositioned(
       top: _currentTop,
       height: widget.height,

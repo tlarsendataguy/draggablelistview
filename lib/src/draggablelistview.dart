@@ -57,10 +57,14 @@ class _DraggableListViewState<E> extends State<DraggableListView<E>> {
   _DraggableListViewState();
 
   var _zIndex = new List<DraggableListViewItem>();
+  bool _scrollUp = false;
+  bool _scrollDown = false;
+  ScrollController _controller;
 
   initState() {
     super.initState();
-    _buildItems();
+    _controller = new ScrollController();
+   _buildItems();
   }
 
   void _buildItems() {
@@ -86,7 +90,39 @@ class _DraggableListViewState<E> extends State<DraggableListView<E>> {
       onDragDown: _drawOnTop,
       onDragIndexChanged: _updateUndraggedTops,
       onDragEnd: _dragEnd,
+      onDraggedToTop: _startScrollUp,
+      onDraggedToBottom: _startScrollDown,
+      onEdgeDragStopped: _stopScroll,
+      listScrollController: _controller,
+      allItemsHeight: widget.source.length * widget.rowHeight,
     );
+  }
+
+  Future _startScrollUp() async {
+    _scrollUp = true;
+    await _scroll(-10.0);
+  }
+
+  Future _startScrollDown() async {
+    _scrollDown = true;
+    await _scroll(10.0);
+  }
+
+  Future _scroll(double distance) async {
+    var newPosition = _controller.offset + distance;
+
+    while ((_scrollUp || _scrollDown) && newPosition >= 0 && newPosition <= getHeight()) {
+      await _controller.animateTo(
+        _controller.offset + distance,
+        duration: new Duration(milliseconds: 250),
+        curve: Curves.linear,
+      );
+    }
+  }
+
+  void _stopScroll(){
+    _scrollUp = false;
+    _scrollDown = false;
   }
 
   void _drawOnTop(DraggableListViewItem item) {
@@ -157,15 +193,19 @@ class _DraggableListViewState<E> extends State<DraggableListView<E>> {
     return top ~/ widget.rowHeight;
   }
 
+  double getHeight(){
+    return widget.rowHeight * widget.source.length;
+  }
+
   Widget build(BuildContext context) {
-    var height = widget.rowHeight * widget.source.length;
     if (_zIndex.length != widget.source.length) _buildItems();
 
     return new Padding(
       padding: const EdgeInsets.only(top: 8.0),
       child: new SingleChildScrollView(
+        controller: _controller,
         child: new Container(
-          height: height,
+          height: getHeight(),
           child: new Stack(
             children: _zIndex,
           ),

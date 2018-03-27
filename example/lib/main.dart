@@ -39,7 +39,13 @@ class _MyHomePageState extends State<MyHomePage> {
     '10',
   ];
 
-  int _currentCounter = 11;
+  initState(){
+    super.initState();
+
+    _currentCounter = data.length;
+  }
+
+  int _currentCounter;
 
   @override
   Widget build(BuildContext context) {

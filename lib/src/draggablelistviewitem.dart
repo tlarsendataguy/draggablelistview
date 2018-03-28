@@ -22,7 +22,6 @@ class DraggableListViewItem extends StatefulWidget {
     @required this.onDraggedToBottom,
     @required this.onEdgeDragStopped,
     @required this.listScrollController,
-    @required this.allItemsHeight,
   })
       : super(key: key);
 
@@ -36,7 +35,6 @@ class DraggableListViewItem extends StatefulWidget {
   final DragCallback onDraggedToBottom;
   final DragCallback onEdgeDragStopped;
   final ScrollController listScrollController;
-  final double allItemsHeight;
 
   createState() => new _DraggableListViewItemState(initialTop);
 }
@@ -60,14 +58,23 @@ class _DraggableListViewItemState extends State<DraggableListViewItem> {
   static const int _defaultAnimateTime = 200;
 
   void _dragDown(DragDownDetails details) {
-    // Get the size of the parent DraggableListView
-    context.visitAncestorElements((element) {
-      if (element.widget is SingleChildScrollView) {
-        _listTop = widget.listScrollController.offset;
+    double stackHeight;
+    double scrollViewHeight;
 
-        _listBottom = element.size.height + _listTop;
-        if (widget.allItemsHeight < _listBottom)
-          _listBottom = widget.allItemsHeight;
+    // Get the size of the list viewport area
+    context.visitAncestorElements((element) {
+      if (element.widget is Stack) {
+        stackHeight = element.size.height;
+        return true;
+      } else if (element.widget is SingleChildScrollView) {
+        _listTop = widget.listScrollController.offset;
+        scrollViewHeight = element.size.height;
+
+        if (scrollViewHeight < stackHeight) {
+          _listBottom = scrollViewHeight + _listTop;
+        } else {
+          _listBottom = stackHeight + _listTop;
+        }
 
         _animateTime = 0;
         _setMovingElevation();
@@ -89,8 +96,7 @@ class _DraggableListViewItemState extends State<DraggableListViewItem> {
     var newTop = _currentTop + change;
     var newBottom = newTop + widget.height;
 
-    if (newBottom > _listBottom)
-      newTop = _listBottom - widget.height;
+    if (newBottom > _listBottom) newTop = _listBottom - widget.height;
 
     if (newTop < _listTop) newTop = _listTop;
 

@@ -94,7 +94,6 @@ class _DraggableListViewState<E> extends State<DraggableListView<E>> {
       onDraggedToBottom: _startScrollDown,
       onEdgeDragStopped: _stopScroll,
       listScrollController: _controller,
-      allItemsHeight: widget.source.length * widget.rowHeight,
     );
   }
 
